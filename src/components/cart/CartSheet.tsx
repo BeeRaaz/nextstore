@@ -19,7 +19,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 
 export function CartSheet() {
-  const { items, removeItem, updateQuantity, getCreateTotal } = useCartStore();
+  const { items, removeItem, updateQuantity, getCartTotal } = useCartStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export function CartSheet() {
   }, []);
 
   const itemCount = mounted ? items.reduce((acc, item) => acc + item.quantity, 0) : 0;
-  const total = mounted ? getCreateTotal() : 0;
+  const total = mounted ? getCartTotal() : 0;
 
   return (
     <Sheet>
@@ -56,7 +56,7 @@ export function CartSheet() {
               <div className="flex flex-col gap-4 py-4">
                 {items.map((item) => (
                   <div key={item.id} className="flex gap-4">
-                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border bg-muted">
+                    <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-md border bg-muted">
                       <Image
                         src={item.thumbnail}
                         alt={item.title}

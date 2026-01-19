@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuthStore } from "@/store/useStore";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AdminSidebar } from "@/components/admin/Sidebar";
@@ -13,17 +13,17 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (!isAuthenticated) {
+    if (status === 'unauthenticated') {
       router.push("/admin");
     }
-  }, [isAuthenticated, router]);
+  }, [status, router]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -35,9 +35,15 @@ export default function DashboardLayout({
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  if (!mounted) return null; // Avoid hydration mismatch
+  if (!mounted || status === 'loading') {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
 
-  if (!isAuthenticated) return null;
+  if (status === 'unauthenticated' || !session) return null;
 
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[220px_1fr] lg:grid-cols-[280px_1fr]">

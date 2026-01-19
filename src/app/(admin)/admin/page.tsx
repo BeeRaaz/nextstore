@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useStore";
+import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,32 +15,41 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-  const login = useAuthStore((state) => state.login);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Hardcoded credentials
-    if (email === "admin@example.com" && password === "admin123") {
-      login({
-        id: 1,
-        email: "admin@example.com",
-        firstName: "Admin",
-        lastName: "User",
-        username: "admin",
-        image: "https://github.com/shadcn.png",
-        gender: "other",
-        token: "dummy-admin-token"
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
       });
-      toast.success("Login successful");
-      router.push("/admin/dashboard");
-    } else {
-      toast.error("Invalid credentials", {
-        description: "Try admin@example.com / admin123"
+
+      if (result?.error) {
+        // Handle different error types
+        const errorMessage = result.error === 'CredentialsSignin' 
+          ? "Invalid credentials. Try admin@example.com / admin123"
+          : result.error === 'Configuration'
+          ? "Authentication configuration error. Please check your environment variables."
+          : "An error occurred during login. Please try again.";
+        
+        toast.error("Login failed", {
+          description: errorMessage
+        });
+      } else if (result?.ok) {
+        toast.success("Login successful");
+        router.push("/admin/dashboard");
+        router.refresh(); // Refresh to update session
+      }
+    } catch (error) {
+      toast.error("An error occurred", {
+        description: "Please try again later"
       });
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   return (

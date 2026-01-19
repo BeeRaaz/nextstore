@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useAuthStore } from "@/store/useStore";
+import { signOut } from "next-auth/react";
 import {
    LayoutDashboard,
    Package,
@@ -20,12 +20,12 @@ interface AdminSidebarProps {
 
 export function AdminSidebar({ className }: AdminSidebarProps) {
    const pathname = usePathname();
-   const logout = useAuthStore((state) => state.logout);
    const router = useRouter();
 
-   const handleLogout = () => {
-      logout();
+   const handleLogout = async () => {
+      await signOut({ redirect: false });
       router.push("/admin");
+      router.refresh(); // Refresh to clear session
    };
 
    const routes = [
@@ -40,18 +40,6 @@ export function AdminSidebar({ className }: AdminSidebarProps) {
          label: "Products",
          icon: Package,
          active: pathname.includes("/products"),
-      },
-      {
-         href: "/admin/dashboard/orders",
-         label: "Orders",
-         icon: ShoppingBag,
-         active: pathname.includes("/orders"),
-      },
-      {
-         href: "/admin/dashboard/settings",
-         label: "Settings",
-         icon: Settings,
-         active: pathname.includes("/settings"),
       },
    ];
 
